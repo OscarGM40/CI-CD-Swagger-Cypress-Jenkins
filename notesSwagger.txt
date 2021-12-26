@@ -1,4 +1,4 @@
-									PRACTICA ONE MOON TRAVELS AGENCY
+							PRACTICA ONE MOON TRAVELS AGENCY
 
 Source One: https://www.youtube.com/watch?v=SdsaZ-t1QwA
 
@@ -300,5 +300,63 @@ components:
       
 No parece muy complicado.Seguir avanzando.
 
+						PRACTICA DOS
 
-  
+SourceTwo: https://www.youtube.com/watch?v=rIWGcxnVIA8
+
+Swagger es una herramienta de doumentación profesional.Con swagger puedo automatizar en gran parte la generación de doumentación de los diferentes endpoints de mi API.
+Dicha documentación es presentada a través de una UI servida por mi propia aplicación donde estarán listados todos los endpoints con su info(parametros por la URL,contenido del body a mandar,...)
+
+NOTA:en su web https://swagger.io/ tengo 3 enlaces en unas Cards.El primero ponde OpenAPI Specification y me lleva a las versiones 2 y 3 de su documentación oficial.Lógicamente usaremos la versión 3.
+
+Bien,el youtuber indica que hay que clonarse su repo y crear el .env con una mongoURi valida.
+
+			INSTALANDO SWAGGER EN UN PROYECTO NODE
+
+Algo que no hicimos en la primera práctica es instalar la libreria en un proyecto node.Además instalamos la libreria para obtener esa interfaz de usuario:
+npm i swagger-jsdoc swagger-ui-express
+
+Para usar esta libreria en node se usa como un middleware,pero hay que pasarle un objeto con la configuración.
+
+/* Swagger settings */
+const swaggerUi = require("swagger-ui-express");
+const swaggerJsDoc = require("swagger-jsdoc");
+
+/* puedo ver las que son required en la doc OAS version3 */
+/* definition es requerida,es un objeto con las propiedades también requeridas openapi,info,servers y aparte también la prop apis para indicar donde estan los endpoints */
+const swaggerInitialSpecs = {
+  definition:{
+    openapi: "3.0.0",
+    info: {
+      title: "NodeJS MongoDB API",
+      version: "1.0.0",
+      description: "NodeJS MongoDB API",
+    },
+    servers: 
+    [
+      {
+        url: "http://localhost:9000",
+        description: "Local server",
+      },
+    ],
+  },
+  apis:[`${path.join(__dirname,"./routes/*.js")}`],
+}
+
+/* el middleware para swagger lleva la ruta como primer arg y despues un par de middlewares.En swaggerUI.setup va la configuracion inicial,la cual la tiene el swaggerJSDOC */
+app.use("/api-doc",
+  swaggerUi.serve, //.serve para que sirva la UI
+  swaggerUi.setup( swaggerJsDoc(swaggerInitialSpecs) ));
+
+En cuanto tenga todo esto en un proyecto ya puedo visitar esta URL
+http://localhost:9000/api-doc/ y veré de momento la interfaz vacía.
+Fijate que puedo elegir servidores,claro que solo especificamos uno,pero podría haber especificado más de uno.Aparte veo mi título custom.
+Lógicamente,hay que crear la documentación ahora.
+
+			CREANDO LA DOCUMENTACIÓN PARA SWAGGER
+
+Hay dos formas de agregar la documentación.La primera sería en cada ruta(en el routes.js) o también en un archivo externo con extensión .yaml o .json
+Vamos a hacerlo inline al ser una API muy sencilla.
+
+Para documentar 'inline' tengo que usar comentarios de bloque,pero con un asterisco en cada linea.Para sacarlos hay que teclear /** (con dos asteriscos) y ya VSC me pondrá un nuevo asterisco en cada linea  
+Dentro de este bloque tengo que usar 'annotations'.
