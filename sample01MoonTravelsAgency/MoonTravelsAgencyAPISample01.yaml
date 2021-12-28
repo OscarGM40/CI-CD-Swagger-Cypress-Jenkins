@@ -1,7 +1,7 @@
 # version a utilizar
 openapi: 3.0.1
 
-# la propiedad info es necesaria en un archivo de documentación con swagger
+# la propiedad info es necesaria en un archivo externo de documentación con swagger
 info:
 # title y description proporcionan informacion
   title: API agencia de viajes MoonTravels
@@ -12,7 +12,7 @@ info:
 # servers proporciona las url base de la api
 servers:
   - url: https://api.moontravesls/v1/clientes
-#los tags son como agrupaciones de los diferentes servicios que proporciona ésta API
+#los tags son como agrupaciones de los diferentes schemas que proporciona ésta API
 tags: 
   - name: clientes
     description: Este endpoint maneja toda la información relacionada con la información de los clientes.
@@ -57,8 +57,8 @@ paths:
       summary: obtiene un cliente basado en su ID
       parameters:
       - $ref: '#/components/parameters/token'
-      - name: idCliente #mismo que arriba,en /{idCliente}
-        in: path #especifica que es un param de la URL
+      - in: path #especifica que es un param de la URL
+        name: idCliente #mismo que arriba,en /{idCliente}
         description: identificador del cliente a obtener
         required: true
         schema:
@@ -86,8 +86,8 @@ paths:
       summary: Actualiza la información de un cliente en la DB
       parameters:
       - $ref: '#/components/parameters/token'
-      - name: idCliente
-        in : path
+      - in : path
+        name: idCliente
         description: identificador del cliente
         required: true
         schema:
@@ -121,8 +121,8 @@ paths:
       summary: elimina a un cliente 
       parameters:
       - $ref: '#/components/parameters/token'
-      - name: idCliente
-        in: path
+      - in: path
+        name: idCliente
         description: identificador del cliente
         required: true
         schema:

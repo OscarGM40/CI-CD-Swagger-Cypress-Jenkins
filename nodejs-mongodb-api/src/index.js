@@ -53,4 +53,7 @@ mongoose
   .catch((error) => console.error(error));
 
 // server listening
-app.listen(port, () => console.log("Server listening to", port));
+app.listen(port, () => {
+  console.clear();
+  console.log("Server listening to", port)}
+  );

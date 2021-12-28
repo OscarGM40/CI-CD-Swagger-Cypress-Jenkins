@@ -359,4 +359,119 @@ Hay dos formas de agregar la documentación.La primera sería en cada ruta(en el
 Vamos a hacerlo inline al ser una API muy sencilla.
 
 Para documentar 'inline' tengo que usar comentarios de bloque,pero con un asterisco en cada linea.Para sacarlos hay que teclear /** (con dos asteriscos) y ya VSC me pondrá un nuevo asterisco en cada linea  
-Dentro de este bloque tengo que usar 'annotations'.
+
+Dentro de este bloque tengo que usar la 'annotations' @swagger para que swagger sepa que es para él ese bloque.Veamos un ejemplo definiendo un Schema:
+
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     User:
+ *       type: object
+ *       properties:
+  *        name:
+  *          type: string
+  *          description: The name of the user
+  *        age:
+  *          type: integer
+  *          description: The age of the user
+  *        email:
+  *          type: string
+  *          description: The email of the user
+ *       required:
+ *         - name
+ *         - age
+ *         - email
+ *       example:
+ *         name: John Doe
+ *         age: 30
+ *         email: alan@example.com
+ */
+
+NOTA :Fijate que simplemente he definido un Schema llamado User(es como un Schema de mongoose,o como va a lucir un User en mi API).Veamos ahora como documentar un endpoint(lo cual se traducirá en una ruta creada en la UI de swagger.
+
+ /**
+ * @swagger
+ * /api/users:
+ *  post:
+ *    description: Create a new user
+ *    tags: [User] #hay que asociar cada endpoint a un Schema
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *           $ref: '#/components/schemas/User'
+ *    responses:
+ *      201:
+ *        description: User created
+ */
+Hay que recalcar que puedo incluso probar desde la interfaz cada endpoint(incluso lo va a crear en la base de datos,ojo).Desde luego es una herramienta muy profesional.
+NOTA:cuando un schema es de type object(o sea,cuando devuelva un Object)  no hay que decir más pero si lo que devuelvo es un array hay que usar adicionalmente la propiedad items:
+
+Si devuelvo un object:
+  schema:
+    type: object
+    $ref: '#/components/schemas/User'
+Y si el endpoint devuelve un array:
+  schema:
+    type: array
+      items:
+        $ref: '#/components/schemas/User'
+
+Por lo demás vamos a documentar el GET,fijate que el requestBody no lleva pues es un get:
+/**
+ * @swagger
+ * /api/users:
+ *  post:
+ *    summary: Create a new user
+ *    tags: [User] #hay que asociar cada endpoint a un Schema
+ *    requestBody:
+ *      required: true
+ *      content:
+ *        application/json:
+ *          schema:
+ *            type: object
+ *            $ref: '#/components/schemas/User'
+ *    responses:
+ *      201:
+ *        description: User created
+ */
+
+Puedo probarlo,etc,veamos ahora un PUT.Por ahora puedo ver que cada endpoint va a llevar las propiedades tags,summary,parameters? y requestBody?,estas dos opcionales, y por último responses.Fijate que al usar parameters tengo que usar un arreglo de ellos cada uno empezando con - in y name:
+/**
+ * @swagger
+ * /api/users/{id}:
+ *  get:
+ *    tags: [User] # hay que asociar cada endpoint a un Schema
+ *    summary: Given an Identificator retrieves one user
+ *    parameters:
+ *      - in: path
+ *        name: id
+ *        description: The id of the user
+ *        required: true
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: Retrieves one user
+ *        content:
+ *          application/json:
+ *            schema:
+ *              type: object
+ *              $ref: '#/components/schemas/User'
+ *      404:
+ *        description: User not found
+ */
+Genial.Además hemos visto como agregar más respuestas.NOTA,puedo comentar dentro de estos bloques de comentarios para swagger:
+ *       required:
+ *         - name
+ *         #- age
+ *         - email
+Solo hay que usar la almohadilla.
+
+				PRACTICA TRES SWAGGER IN-DEPTH TUTORIAL
+
+Source: https://www.youtube.com/watch?v=EnMQm365t_s
+
+
