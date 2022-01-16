@@ -5,9 +5,10 @@ const userRoute = require("./routes/user");
 const path = require("path");
 
 /* Swagger settings */
+/* puedo ver las que son required en la doc OAS version3 */
 const swaggerUi = require("swagger-ui-express");
 const swaggerJsDoc = require("swagger-jsdoc");
-/* puedo ver las que son required en la doc OAS version3 */
+
 /* definition es requerida,es un objeto con las propiedades también requeridas openapi,info,servers y aparte también la prop apis para indicar donde estan los endpoints */
 const swaggerInitialSpecs = {
   definition:{

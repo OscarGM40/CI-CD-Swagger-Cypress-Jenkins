@@ -1,0 +1,65 @@
+							SWAGGER IN-DEPTH TUTORIAL
+
+Source: https://www.youtube.com/watch?v=EnMQm365t_s
+
+Empiezo instalando swagger-ui-express,el propio express y yamljs.Fijate que este dev de momento no instala swagger-jsdoc.
+NOTA:recuerda que puedes dejar un archivo request.http en cada proyecto con comentarios y las peticiones .
+
+Al no instalar swagger-jsdo lo que va a hacer es cargar el archivo con esta librería:
+const express = require("express");
+const swaggerUI = require("swagger-ui-express");
+
+const YAML = require("yamljs");
+const swaggerJsDocs = YAML.load("./api.yaml");
+
+Fijate que al usar el yaml ya no necesito pasarle el objeto SwaggerInitialSpecs coo en el proyecto 2 con la version,la api,los servers,....Desde luego es un mejor aproach para un proyecto medio-grande,incluso necesario seguramente:
+
+app.use( "/api-docs", swaggerUI.serve, swaggerUI.setup(swaggerJsDocs));
+* ya no es  swaggerUi.setup( swaggerJsDoc(swaggerInitialSpecs) )); pues lo voy a definir todo en el yaml.Perfecto.
+
+Lógicamente tendré que crear este file:
+const swaggerJsDocs = YAML.load("./api.yaml");
+
+NOTA:nodemon por defecto sólo busca por cambios en archivos .js | mjs | json,pero no buscará por cambios en .yamls.Para que busque por cambios en este tipo de extensión creamos el file nodemon.json(que lo configura) en la raíz:
+
+{
+  "ext":".js,.jsx,.ts,.tsx,.json,.yml,.yaml"
+}
+Recuerda que es nodemon.json y tengo que ver el icono cambiado:
+[nodemon] watching path(s): *.*
+[nodemon] watching extensions: js,jsx,ts,tsx,json,yml,yaml <- ya puedo ver que mira por más extensiones.Genial.
+
+Importante: fijate que en un yaml puedo usar igual que en un .env comillas si quiero y si no quiero también será un String:
+Esto:  summary: "Returns a String" y  summary: Returns a String es lo mismo.
+
+Fijate que a la hora de documentar un endpoint puedo documentar los statusCode y describirlos,además de especificar el tipo de dato que encontrará el usuario.Amazing:
+paths:
+  /string:
+    get:
+      summary: "Returns a String"
+      description: "Returns a String"
+      responses:
+        200:
+          description: "Success.You will get the content"
+          content:
+            application/json:
+              schema:
+                type: string
+				example: "like this string"
+        400:
+          description: "Bad Request.You will get the error"
+		  content:
+            text/html:
+
+Realmente puedo especificar muchísimo lo que hace cada endpoint.Siempre se especifica el tipo de la respuesta,como acabo de hacer con la propiedad schema.Incluso se le puede dar un ejemplo usando la prop schema.example
+
+Veamos ahora como documentar este endpoint que devolverá un object:
+app.get("/user",(req, res) => {
+  res.send({
+    id:1,
+    name: "John",
+    lastName: "Doe",
+    age: 30
+  });
+})
+NOTA: la propiedad tags es indispensable también.MINUTO 24

@@ -1,0 +1,65 @@
+# esta persona usó swagger 2.0 pero también puede usarse openapi 3.0.1 como version de swagger
+#swagger: "2.0"
+openapi: "3.0.1"
+info:
+  title: Practica 03 Swagger In-Depth API
+  description: This API is used to manage the information of the clients.
+  version: 1.0.0
+  # automáticamente se puede enviar un email
+  contact:
+    name: Jane
+    email: janegarrapata@gmail.com
+  # si hubiera licencias van aqui
+  license:
+    name: MIT
+    url: "http://apache.org/licenses/LICENSE-2.0.html"
+  #muchas veces tendré varios servers
+servers:
+- url: "http://localhost:3000/"
+  description: This is the API on localhost.
+- url: "http://mycompany.com/"
+  description: Thi is the API on production.
+
+# schemes: [http, https]
+# 
+tags: 
+  - name: clientes
+    description: Información de los clientes.
+paths:
+  # returns a String
+  /string:
+    get:
+      tags:
+        - clientes
+      summary: "Returns a String"
+      description: "Returns a String"
+      responses:
+        200:
+          description: "Success.You will get the content"
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Hello World"
+        400:
+          description: "Bad Request.You will get the error"
+        500:
+          description: "Internal Server Error.You will get the error"
+  # returns an Object
+  /user:
+    get:
+      tags:
+        - clientes
+      summary: "returns an Object"
+      description: "Returns a single user"
+      responses:
+        200:
+          description: "Success.User will be shown"
+          content:
+            application/json:
+              schema:
+                type: object
+        400:
+          description: "Bad Request.You will get the error"
+        500:
+          description: "Internal Server Error.You will get the error"
