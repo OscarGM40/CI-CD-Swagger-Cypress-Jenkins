@@ -62,4 +62,108 @@ app.get("/user",(req, res) => {
     age: 30
   });
 })
-NOTA: la propiedad tags es indispensable también.MINUTO 24
+NOTA: la propiedad tags es indispensable también.
+
+Realmente es igual de sencillo,salvo que que para darle un example es un poco más complejo(usaremos la propiedad schema.properties):
+  # returns an Object
+  /user:
+    get:
+      tags:
+        - clientes
+      summary: "returns an Object"
+      description: "Returns a single user"
+      responses:
+        200:
+          description: "Success.User will be shown"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  name:
+                    type: string
+                    example: "Jane"
+                  email:
+                    type: string
+                    example: "jane@example.com"
+
+Esto mostrará:
+{
+  "name":"Jane",
+  "email":"jane@example.com"
+} Genial
+
+Veamos ahora lo mismo retornando un arreglo en vez de un object:
+  # returns an Array
+  /users:
+    get:
+      tags:
+        - clientes
+      summary: "Returns a List of Users"
+      description: "Returns an array of objects"
+      responses:
+        200:
+          description: "Success.Array is shown"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                      example: "Jane"
+                    email:
+                      type: string
+                      example: "jane@example.com"
+
+Realmente es igual,salvo que deberé usar schema.items en vez de schema.properties,ya que es un arreglo de items y no de properties(properties para objects).
+
+En cuanto a mandar parámetros por la URL hay que usar {} y especificar de donde vienen(ya que pueden venir del path o la query):
+  /users/{userId}:
+    get:
+      tags:
+        - clientes
+      summary: "Returns a single user by ID"
+      description: "Returns a single user given an ID"
+      parameters:
+        - in: path 
+          name: userId
+          description: "User's ID"
+          required: true
+          schema:
+            type: integer
+
+Ese parameters.in probablemente cambie si van por la query.Ojo.Fijate que parameters.name es imprescindible que coincida con el nombre del :param.
+Bien,veamos como documentar un POST:
+  # sending a body
+  /create:
+    post:
+      tags:
+        - clientes
+      summary: "Create a User"
+      description: "Create a user given a Body"
+      requestBody:
+        description: "User's information"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Jane"
+                email:
+                  type: string
+                  example: "johndoe@gmail.com"
+                age:
+                  type: integer
+                  example: 22
+Cabe reseñar el uso de requestBody,y que en versiones anteriores era parameters.in = body y se usaba consumes y produces en vez de content: application/json
+Podria devolver un string como response,etc.
+Fijate que este endpoint ya obliga al server express a interpretar json en el body,luego necesitaré configurarlo,como siempre.
+
+Minuto 47
+

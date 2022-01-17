@@ -59,6 +59,130 @@ paths:
             application/json:
               schema:
                 type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    example: "Jane"
+                  lastName:
+                    type: string
+                    example: "Doe"
+                  age:
+                    type: integer
+                    example: "30"
+        400:
+          description: "Bad Request.You will get the error"
+        500:
+          description: "Internal Server Error.You will get the error"
+  # returns an Array
+  /users:
+    get:
+      tags:
+        - clientes
+      summary: "Returns a List of Users"
+      description: "Returns an array of objects"
+      responses:
+        200:
+          description: "Success.Array is shown"
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                      example: "Jane"
+                    lastName:
+                      type: string
+                      example: "Doe"
+                    age:
+                      type: integer
+                      example: 30
+        400:
+          description: "Bad Request.You will get the error"
+        500:
+          description: "Internal Server Error.You will get the error"
+  # sending dynamic data through URL parameters
+  /users/{userId}:
+    get:
+      tags:
+        - clientes
+      summary: "Returns a single user by ID"
+      description: "Returns a single user given an ID"
+      parameters:
+        - in: path
+          name: userId
+          description: "User's ID"
+          required: true
+          schema:
+            type: integer
+      responses:
+        200:
+          description: "Success.User will be shown"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    example: "Jane"
+                  lastName:
+                    type: string
+                    example: "Doe"
+                  age:
+                    type: integer
+                    example: 30
+  # sending a body
+  /create:
+    post:
+      tags:
+        - clientes
+      summary: "Create a User"
+      description: "Create a user given a Body"
+      requestBody:
+        description: "User's information for creation"
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Jane"
+                lastName:
+                  type: string
+                  example: "Garrapata"
+                age:
+                  type: integer
+                  example: 22
+      responses:
+        200:
+          description: "Success.User will be created"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    example: "Jane"
+                  lastName:
+                    type: string
+                    example: "Garrapata"
+                  age:
+                    type: integer
+                    example: 30
         400:
           description: "Bad Request.You will get the error"
         500:
