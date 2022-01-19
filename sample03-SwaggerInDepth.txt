@@ -165,5 +165,131 @@ Cabe reseñar el uso de requestBody,y que en versiones anteriores era parameters
 Podria devolver un string como response,etc.
 Fijate que este endpoint ya obliga al server express a interpretar json en el body,luego necesitaré configurarlo,como siempre.
 
-Minuto 47
+Por último,puedo usar una zona llamada components donde crear referencias y usarlas con $ref: '#/components/...
+Hasta ahora he visto components.responses, components.parameters y components.schemas.Por ejemplo puedo usar esto para el token:
+
+components:
+  parameters:
+    token:
+	  in: header
+      name: token
+      description: ...
+      required: true
+      schema:
+        type: string
+
+Sabiendo esto podría definir como luce un User y despues llamarlo siempre que lo necesite,evitando duplicar código:
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+          example: "Jane"
+        lastName:
+          type: string
+          example: "Doe"
+        age:
+          type: integer
+          example: 30
+
+Y despues lo llamo cuando necesite.
+     schema:
+       $ref: '#/components/schemas/User'
+
+IMPORTANTE:esta propiedad components debe ir siempre al final del archivo.
+Recalcar también que puedo dar un grupo de valores para elegir con enum:
+  parameters:
+        - in: query
+          name: name
+          description: "User's name"
+          required: false
+          schema:
+            type: string
+            enum: ["Jane", "John", "Mary"]
+        - in: query
+          name: lastName
+          description: "User's last name"
+          required: false
+          schema:
+            type: string
+        - in: query
+          name: age
+          description: "User's age"
+          required: false
+          schema:
+            type: integer
+            enum: [20, 30, 40]
+
+Es algo que tendré que usar para,por ejemplo,dar un grupo de roles válido.Veamos ahora una subida de archivo:
+
+IMPORTANTE: puedo usar el middleware express-fileupload para gestionar fácil la subida de archivos.De echo deberia usarlo,ya que aparte de subir la imagen permite almacenarla fácil en el explorador de archivos:
+
+app.post("/upload", (req, res) => {
+  const file = req.files.file;
+  let path=__dirname + "/upload/"+Date.now().toString()+".jpg";
+  file.mv(path, (err) => {
+    if (err) {
+      return res.status(500).send(err);
+    }
+    res.send("File uploaded");
+  });
+});
+* Recuerda que es req.files.name en este caso el name es file,pero puede ser otro.Recuerda también que hay que crear la carpeta.También podría acompañar ese archivo con algun campo:
+error"
+  # file Upload
+  /upload:
+    post:
+      tags:
+        - clientes
+      summary: "Upload a file"
+      description: "Upload a file"
+      requestBody:
+        description: "File to upload"
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                name:
+                  type: string
+                  example: "image.jpg"
+
+Para ello simplemente agrego más properties a rescatar del requestBody.Por últim,ya he visto params,query,body,files asi que nos falta headers.HAbrá que usar la propiedad parameters,igual que para un queryParam o un pathParam:
+
+IMPORTANTE: si fuera en las cookies lo mismo,se usa parameters.in: cookie
+
+ # file Upload
+  /upload:
+    post:
+      description: "Upload a file"
+      parameters:
+        - in: header <- puede ser path,cookie o query también
+          name: token
+          description: "Id of the user"
+          required: true
+          schema:
+            type: string
+      requestBody:
+        description: "File to upload"
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+
+Como puedo ver es bastante sencillo Swagger.Acuerdate del middleware express-fileupload.
+
 
