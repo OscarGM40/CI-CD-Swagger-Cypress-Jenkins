@@ -1,0 +1,35 @@
+				AUTOMATE DOC GENERATION WITH SERVERLESS
+
+Source: https://www.youtube.com/watch?v=vkTIM9MQ5Wc&ab_channel=CompleteCoding	
+
+El youtuber CompleteCoding ha creado un paquete npm propio que junto con un plugin de Serverless autogenera documentación en Swagger.
+
+					SERVERLESS-TEMPLATES-CREAR PROYECTO
+
+NOTA: en este punto puedo instalar Serverless en global o local.Recuerda que tengo que crear el directorio primero y ubicarme alli:
+npm i serverless -g 
+Para ver las template puedo usar:
+>serverless create --help
+>serverless create aws-nodejs-typescript(ya en el folder)
+
+Ahora instalo el plugin de serverless en desarrollo:
+npm i serverless-auto-swagger -D
+
+NOTA: en el arreglo de plugins tengo que declaralo el primero ahora:
+ plugins: ['serverless-esbuild'], <- ponerlo antes:
+ plugins: ['serverless-auto-swagger','serverless-esbuild'],
+
+Importante:fijate que él tiene 3 o 4 plugins instalados.
+
+Inicio todo simulando AWS en local con :
+sls offline start
+Esto creará un folder 'swagger'
+
+NOTA:para esto necesito el plugin 'serverless-offline'.Puedo instalarlo en global con:
+npm i -g serverless-offline
+O en local como dependencia de desarrollo.Despues tengo que agregarlo al arreglo de plugins anterior('serverless-offline')
+
+Quedando asi:
+ plugins: ['serverless-auto-swagger','serverless-esbuild','serverless-offline'],
+
+IMPORTANTE: de aqui en adelante sería aprender más sobre Serverless,sobre como crear endpoints y como documentarlos con su sintaxis,y como subirlos al Provider.De momento lo dejaré en este punto todo esto,ya que no parece que lo vaya a usar en un futuro inmediato.
