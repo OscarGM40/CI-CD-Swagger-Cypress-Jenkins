@@ -1,0 +1,32 @@
+					JENKINS TUTORIAL FOR BEGINNERS BY NANA
+
+
+Playlist: https://www.youtube.com/watch?v=pMO26j2OUME&list=PLy7NrYWoggjw_LIiDK1LXdNN82uYuuuiC&index=5&ab_channel=TechWorldwithNana
+Repo:
+
+				VIDEO 01 RUNNING JENKINS IN A CONTAINER
+
+En este video vamos a configurar Jenkins usando un Docker container.
+También crearemos un pipeline multi-branch con Git Repo
+También veremos los tipos de Credentials que existen en Jenkins
+Crearemos un Jenkinsfile para configurar ese pipeline
+
+El contenedor lo puedo arrancar con docker run:
+
+docker run -d -v jenkins_home:/var/jenkins_home -p 8080:8080 -p 50000:50000 --name jenkins jenkins/jenkins:lts-jdk11
+
+NOTA: Jenkins por defecto corre en el puerto 8080.El 50_000 es para comunicación interna entre Master/Slaves
+
+Recuerda que tendré que leer los logs para ver la password.
+Cuando arranque instalo los plugins sugeridos por el sistema.
+Voy a dejar 'oscargm40' como user y la pass larga 01.
+
+Tipos de tarea(item en inglés): 
+Freestyle: simple,single task( like a test)
+PIpeline: whole delivery cycle(test + build + deploy) For a single branch
+Multibranch pipeline: like a pipeline but for multiple branches
+
+IMPORTANTE: en proyectos muy grandes obviamente es una mejor opción ir por una instalación local de Jenkins,pero en proyectos más pequeños usar su contenedor y tener esta flexibilidad puede ser una mejor idea.
+
+				VIDEO 02 CREATE MULTIBRANCH PIPELINE WITH GIT
+ 
