@@ -30,3 +30,52 @@ IMPORTANTE: en proyectos muy grandes obviamente es una mejor opción ir por una 
 
 				VIDEO 02 CREATE MULTIBRANCH PIPELINE WITH GIT
  
+NOTA: puedo instalar el plugin locale entrando al contenedor e instalandolo mediante la cli 'jenkinks-plugin-cli'.Ver documentación para ello.
+
+Bien,creo un nuevo Item(job|tarea).Eligo multibranch pipeline.Tras elegir un tipo de job se abrirá el dashboard para configurar las opciones:
+
+DisplayName y Description son sólo metadata.
+BranchSource es el tipo de proyecto.Eligo git y le paso un repo cualquiera de momento.
+
+Discover Branches: Dado que estoy en un multibranch project,puedo elegir ramas.Puedo pasar una regex para que las descubra jenkins.De momento que descubra todo.
+
+Build Configuration: lo normal es que sea de un Jenkinsfile,de momento lo dejo asi
+
+							CREDENTIALS
+
+Obviamente Jenkins no va a poder conectarse a ese repositorio sin credenciales,sin autenticarse frente a GitHub.
+El plugin Credential me permite almacenar y gestionar las credenciales de manera centralizada
+
+Bien,lo importante es entender que las credenciales van a tener un scope.Por defecto ya hay un scope creado,de scope global llamado jenkins.
+
+SCOPES:
+System scope: only available on Jenkins Server(jenkins and nodes only).Este scope no es accesible por un Job,luego no lo vería en la pipeline que tengo
+
+Global: accesible everywhere,por Jenkins,los Nodes,los items o jobs,cualquier pipeline...
+
+Project: hay un tercer scope,que es limitado al proyecto.Este sólo viene con pipelines multibranch
+Este scope es generado gracias al plugin 'folder',que permite organizar jobs en folders
+
+TYPE OF CREDENTIAL:
+El más común es Username & Password,aunque también hay SSH Username with Private Key(una Private Key para SSH),o un Secret file(supongo que texto encriptado).
+Dependiendo de los plugins, pueden aparecer más opciones(como un GitHub Access Token type).
+NOTA:el Id que le dé a una credential es importantísimo,pues es lo que voy a usar para referenciar la credential.
+
+Bien,si voy a Dashboard/<project/credentials veré los scopes(los cuales tienen un nombre,en este caso el scope 'jenkins' y el scope 'NanaMBP'.El primero lo va a ver cualquier proyecto,el segundo es sólo para este proyecto.
+Más arriba puedo ver que tengo una credencial de tipo global en cada scope.Claro que no me valen pues no son correctas.
+Esto es muy bueno para restringir el ámbito de las credenciales a un proyecto,lo cual es mejor que tenerlas en todo el servidor.
+
+Ya sí,creo unas credenciales en el scope del proyecto con mi username y password de Git, le doy un Id semántico y las selecciono en la configuración del proyecto.
+Obviamente no hará nada,más que conectarse al repositorio exitosamente.
+
+NOTA:puede ser que no quiera que descubra todas las branches,si quiero puedo agregarlas con una regex de Java(recuerda que Jenkins está sobre Java):
+^master|develop|feature.*$ <- master,develop o feature+cualquier cosa
+
+Puedo comprobar que si quito master sólo escaneó develop:
+Checking branches...
+  Checking branch develop
+      ‘Jenkinsfile’ not found
+    Does not meet criteria
+Processed 2 branches <- procesó las dos,pero sólo busco en develop por el Jenkinsfile.Lo siguiente obviamente será crear ese archivo
+
+			VIDEO 03 JENKINSFILE SYNTAX & REPLAY & RESTART
