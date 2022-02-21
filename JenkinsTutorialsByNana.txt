@@ -79,3 +79,73 @@ Checking branches...
 Processed 2 branches <- procesó las dos,pero sólo busco en develop por el Jenkinsfile.Lo siguiente obviamente será crear ese archivo
 
 			VIDEO 03 JENKINSFILE SYNTAX & REPLAY & RESTART
+
+Voy al repo que tengo enlazado y creo un file.Lo llamo Jenkinsfile.Como template inicial puedo usar este código,que simplemente no hace nada:
+
+pipeline {
+  agent any
+  stages {
+    stage("build") {
+      steps {
+      }
+    }
+  }
+}
+LLegados a este punto tengo que saber un par de cosas sobre los files para Jenkins
+
+						PIPELINE SYNTAX
+
+Un archivo Jenkinsfile puede ser escrito de forma 'scripted' o de forma 'declarative'.
+Scripted: fue la primera sintaxis disponible y usa el lenguaje Groovy.Al ser un lenguaje,es más potente y flexible que usar la forma declarativa,pero hay que aprender Groovy.
+
+Declarative: es una adicción reciente,debido a la dificultad de aprender Groovy.Al no ser un lenguaje no es tan poderoso como Groovy.
+
+Si uso la forma declarativa una template luce asi:
+pipeline {
+  agent any
+  stages {
+    stage("build"){
+      steps {
+      }
+   }
+}
+
+"pipeline" debe estar en el top-level,al principio
+"agent"- donde ejecutar
+"stages"  - donde sucede el 'trabajo'
+"stage" and "steps": formas de modularizar una task
+
+Normalmente una pipeline estará formada por varias stages,que a su vez estarán formadas por varias stage.Fijate que cada stage("name") recibe un name
+
+Dentro de cada step irán los scripts que se ejecutan en el Jenkins Server
+
+Puedo crear un Jenkinsfile con cualquier echo a la consola y tratar de ver los logs.
+
+Puedo ver también que ha creado varias zonas(estan en my-pipeline-master):
+Declarative: Checkout SCM	build	test	deploy
+La primera es declarative ya que he usado una aproximación declarativa.
+
+					TEST A TASK
+
+Imagina que un step tiene algo de Groovy y soy bastante nuevo con Groovy.O que no estoy seguro de cierto paso... Puedo testear esa task,llendo a una task ya ejecutada(ahora mismo está en NanaMBP/master/#1) y alli darle a replay,pero antes de darle a replay hago el cambio en la interfaz con lo que quiero testear(esa expresión Groovy,por ejemplo)
+
+IMPORTANTE: para ejecutar código Groovy en una aproximación declarativa debo englobarlo entre la etiqueta script {} . Ejemplo:
+pipeline {
+  agent any
+  stages {
+    stage("build) {
+      steps {
+		echo 'building the application...'
+        script {
+          def test = 2 + 2 > 3 ? 'cool' : 'not-cool'
+		  echo test
+      }
+    }
+  }
+}
+
+No solo esto,sino que también tengo una opción restart from stage,donde puedo elegir desde que stage reiniciar un job,omitiendo los anteriores.Esto puede ser muy útil a veces.
+
+				VIDEO 04 TRIGGERING JENKINS BUILD AUTOMATICALLY
+
+
