@@ -1,0 +1,451 @@
+					TUTORIAL CYPRESS
+
+Playlist: https://www.youtube.com/watch?v=drzcQ3Tt1hU&list=PLjM3-neCG6qxbI9lGKq2i0Co4kkAPWI0a&ab_channel=PabloSebasti%C3%A1nSoifer
+Documentación(WebOficial): https://cypress.io
+
+Cypress es un framework para la automatización de pruebas end to end.No utiliza Selenium,utiliza un Web Driver(Chrome)lo cual lo hace un poco más rápido.
+Hay cuatro tipos de pruebas,de integración,unitarias,end to end y estáticas(el linter).
+Al instalarlo ya viene con todas las herramientas que necesito(a diferencia de su competidor pupeteer)
+Utiliza Javascript
+
+  VENTAJAS
+
+Es fácil de instalar y tiene una curva de aprendizaje baja.
+Tiene real time reload ( se va ejecutando la prueba sin tener que refrescar)
+Tiene Time travel(permite viajar entre movimientos)
+Es fácil categorizar pruebas
+Solución out of the box(no necesito instalar nada más,en principio,aunque puedo añadir funcionalidades con paquetes extra).
+En muchas ocasiones es más rápido que las soluciones basadas en Selenium.
+Tiene una UI para administrar las pruebas
+Tiene MUCHA DOCUMENTACIÓN(comunidad creciente)
+El tema de los waits es automático,lo maneja Cypress,a diferencia de Selenium.
+
+ DESVENTAJAS
+
+ Sólo corre en Chrome(desde la version 4 Firefox y Edge están soportados,ya no es desventaja,pues van por la version 9)
+ Sólo tiene implementación con Javascript.Si el equipo supiera Python quizás fuera mejor usar Selenium
+
+			 ¿QUE VIENE CON CYPRESS?
+
+Mocha: framework de pruebas.Cypress no utiliza jest como test runner,utiliza mocha y la sintaxis de mocha para sus pruebas,que es bastante parecida.Aunque lee archivos .js deberían llevar extensión spec.xx.
+Chai:librería para hacer asserts
+Sinon: me permite realizar comprobaciones sobre interacciones grabando que es lo que pasa,dar comportamiento a esas interacciones.Lo veré en breve todo esto.
+
+
+			INSTALANDO CYPRESS
+
+Para instalar Cypress necesitaré npm y por ello a Node.			
+Despues instalo Cypress en modo dev
+IMPORTANTE:para poder hacer un test end to end hay que tener la aplicación levantada(tanto la API como el front).También hay que instalar cypress en desarrollo,no es una dependency core:
+>npm i cypress -D
+
+Para abrir cypress de momento puedo entrar al binario y ejecutar open:
+>./node_modules/.bin/cypress open <- cambiaremos de forma enseguida
+
+Esto abrirá un entorno gráfico con un montón de ejemplos los cuales puedo probar.Se abrirá un navegador controlado por él y se ejecutará la prueba,dejando un snapshot por cada step de la prueba al que se puede volver y consultar el código.
+
+Fijate que es más sencillo si añado a los scripts del package.json:
+"cypress:open":"cypress open"
+
+Cypress creará el directorio cypress y el archivo cypress.json.Dentro del folder cypress creará las subcarpetas fixtures,integration,plugins y support.
+Lo más importante es que en esa carpeta cypress/integration van los tests,aparte de también recordar que en cypress/support van ciertos archivos para comandos.
+
+			VIDEO 02 PRIMERAS PRUEBAS
+
+Para escribir pruebas ya hemos comentado que están en cypress/integration.Puedo ver que de aqui puedo agrupar en subfolders,de echo ya trae dos la instalación por default.
+TIP: al editar un archivo .spec cypress lo leerá automáticamente,no necesito refrescar.
+NOTA:uno de los tests más básicos es que se pueda visitar la app,simplemente.	
+
+const { expect } = require("chai");
+const { it, describe } = require("mocha");
+
+
+describe('Pruebas en cuentas.js', () => {
+  let a = 2, b = 3;
+/* ojo con el to.equal por estar en chai */
+  it('Debe de sumar correctamente', () => {
+    expect(a+b).to.equal(5);
+  })
+  /* y el to.be ?? */
+  it('debe de restar correctamente',() => {
+    expect(b-a).to.equal(1);
+  })
+})
+
+Fijate que me pidió instalar mocha y chai por separado(no los incluia ya?)
+
+		VIDEO 03 INICIANDO UNA AUTOMATIZACIÓN DE UNA UI
+
+Vamos a realizar nuestra primera prueba con automatización.Usaré la url https://automationpractice.com/index.php		
+NOTA: todo comando en cypress va a empezar por cy. Por ejemplo,para abrir una url en modo headless usaré cy.visit(url).
+Una vez abierta el navegador con esa url puedo usar el selector de elementos de Cypress para obtener el selector del elemento que quiera,y copiarlo al clipboard.Genial.Copio el search input
+
+describe('Pruebas automatizadas en search.js',() => {
+  const url = 'http://automationpractice.com/index.php';
+  it('Search with results',() => {
+    cy.visit(url);
+    cy.get('#search_query_top').type('dress')
+  })
+
+Fijate que con element.type('dress') escribí dress sobre el input.Ahora hay que hacer click sobre el botón,asi que busco el selector en el entorno gráfico.Por último,espero que aparezca el término dress en la pantalla posterior al click.  
+
+describe('Pruebas automatizadas en search.js',() => {
+  const url = 'http://automationpractice.com/index.php';
+  it('Search with results',() => {
+    cy.visit(url);
+    cy.get('#search_query_top').type('dress');
+    cy.get('#searchbox > .btn').click();
+    cy.get('.lighter').contains('"dress"')
+  })
+})
+
+			VIDEO 04 BUSQUEDAS CON GET
+
+Vamos a ver varias formas de conseguir un elemento.
+
+La primera es por un ID:
+  cy.get('#search_query_top').type('Como te va ') // por id
+
+La segunda lógicamente es con clases CSS:
+cy.get('.search_query.form-control.ac_input').type('Hola') //por clase
+TIP: fijate que un elemento <h1 class="input form heading"> computará a .input.form.heading( es decir que tenga las tres clases).Muy importante
+
+La tercera es por cualquier atributo HTML,por ejemplo el name:
+cy.get('[name="search_query"]').type('Me va muy bien') // por atributo name
+
+Y realmente puedo buscar por el atributo que quiera,por ejemplo el placeholder:
+cy.get('[placeholder="Search"]').clear(); //por cualquier otro atributo
+
+TIP:fijate en el uso de clear para limpiar el campo.
+NOTA: seguramente se podrá buscar por XPath u otras formas.Ya las veremos más adelante.
+
+			VIDEO 05 ENCADENAR ACCIONES SOBRE UN ELEMENTO
+
+Este tema es fundamental.Realmente no tiene mucha ciencia,simplemente cuando tenga seleccionado un elemento le puedo concatenar métodos al más puro estilo jQuery:
+
+cy.get('#search_query_top').clear().type('Hola').clear().type(' que tal');
+
+
+			VIDEO 06 SOPORTE PARA FIREFOX Y EDGE
+
+Desde la versión 4+ (sobre enero/febrero 2020) se introdujo soporte para Firefox y Edge.Para poder cambiar de browser tengo un combo box arriba a la derecha con los navegadores disponibles para el sistema operativo donde esté ejecutando cypress.
+
+			VIDEO 07 CICLOS DE VIDA BEFORE Y AFTER
+
+En este video voy a ver dos funciones para poder ejecutar código antes de que se ejecuten TODOS los tests y despues de que se ejecuten TODOS los tests.No confundir con antes de cada TEST.
+Estas instrucciones sólo se van a ejecutar una vez,al arrancar la suite de test y al terminar el último de los tests.
+
+Imagina por ejemplo esta suite de tests:
+describe('Pruebas automatizadas en search.js',() => {
+  
+  const url = 'http://automationpractice.com/index.php';
+
+  it('Search for dresses',() => {
+    cy.visit(url);
+    cy.get('#search_query_top').type('dress');
+    cy.get('#searchbox > .btn').click();
+    cy.get('.lighter').contains('"dress"')
+  })
+
+  it('Search for hats',() => {
+    cy.visit(url);
+    cy.get('#search_query_top').type('hats');
+    cy.get('#searchbox > .btn').click();
+    cy.get('.lighter').contains('"hats"')
+  })
+})
+
+Fijate que puedo imprimir por consola con cy.log().Bien,podria imprimir cuando empieza el conjunto de test y cuando termina:
+
+describe('Pruebas automatizadas en search.js',() => {
+
+  const url = 'http://automationpractice.com/index.php';
+  
+  before( () => {
+    cy.log("Ejecutando precondiciones a las pruebas")
+  })
+
+  after( () => {
+    cy.log('finalizadas las pruebas en el archivo')
+  })
+   
+
+  it('Search for dresses',() => {
+    cy.get('#search_query_top').type('dress');
+    cy.get('#searchbox > .btn').click();
+    // cy.get('.lighter').contains('"dress"')
+    cy.get('.page-heading').contains('"dress"')
+  })
+
+		VIDEO 08 CICLOS BEFORE EACH Y AFTER EACH
+
+Si quisiera tener precondiciones en cada test y postcondiciones en cada test también tengo dos hooks o ciclos de vida.Son beforeEach y afterEach.El beforeEach es el sitio ideal para guardar ese cy.visit(url) ya que es algo compartido por cada prueba de este archivo:
+
+before( () => {
+    cy.log("Ejecutando precondiciones a las pruebas")
+  })
+  after( () => {
+    cy.log('finalizadas las pruebas en el archivo')
+  })
+  
+  beforeEach( () => {
+    cy.visit(url);
+    cy.log("Ejecutando una prueba")
+  })
+
+  afterEach( () => {
+    cy.log("Finalizando una prueba")
+  })
+
+NOTA: un redux thunk permite crear un ActionCreator que devuelva una función.De esta forma,se puede crear funcionalidad asincrona:
+>npm i redux-thunk
+En Redux normal,aparte de combinar los reducers a mano también tengo que decirle que lo use:
+import thunk from 'redux-thunk';
+
+const reducer = combineReducers({...})
+export const store = createStore({
+  reducer,
+  composeWithDevTools( applyMiddleware(thunk) ) })
+Ahora,al crear los actionsCreators puedo usar esto:
+export const initNotes = () => {
+  return async( dispatch) => { <- fijate que puedo quitar el primer return y hacerlo implicito
+   const notes = await getAll() <- ya puedo usar código asincrono
+   dispatch({type:'@notes/init',payload:notes}) <- y disparar más acciones
+   } }
+Cuando quiera puedo llamar a initNotes que me pedirá las notes y disparará esa acción:
+useEffect( () => {
+  dispatch(initNotes());
+},[dispatch]
+Esto es redux-thunk.NO confundir con la impl de RTK y sus redux-thunk mejorados.
+IMPORTANTE:dentro de estas funciones internas del actioncreator debería tener sólo lógica de estado y ser lo más agnostico posible,nada de axios.post ,etc comoo aqui que llamo a un servicio.Fijate lo importante que es esto y que todo el mundo mete peticiones en bruto aqui,cuando debería llamar a un servicio externo(ya ese servicio que llame al localStorage,a ajax a axios,...)
+
+		VIDEO 09 PRUEBAS EN UN CHECKBOX
+
+Empecemos a hablar de interacciones.Simularemos aceptar algunos checkboxes de la web de pruebas.Si bien normalmente se haría con .click() cypress tiene un método específico para checkboxes que es .check(),el cual está echo para checkboxes.Para deschequear también tiene uncheck():
+
+ it('Large Tops search', () => {
+    cy.get('#layered_category_4').check();
+    cy.get('#layered_id_attribute_group_3').check();
+    /* aqui iría alguna lógica tras las interacciones */
+    cy.get('#layered_id_attribute_group_3').uncheck();
+  })
+
+TIP: puedo usar .as(string) para dar un alias a un comando de cypress.Recuerda que cypress ejecuta todo de forma asíncrona,asi que debo usar as:
+
+ cy.get('#layered_id_attribute_group_3').as('getCheck2');
+ cy.get('@getCheck2').check();
+ cy.get('@getCheck2').uncheck();
+
+		VIDEO 10 MANEJANDO SELECTS
+
+Otra interacción posible son los selects.Por ejemplo,en la ruta anterior tengo un select(combo box) desplegable con varias opciones(ordenar por precio,por nombre producto,...)		
+Para seleccionar una opción de un desplegable también tengo el método select(value) ya suministrado por la libreria,el cual recibe el valor a setear que deberá existir:
+ it('Order by Highest prices', function(){
+  cy.get('#selectProductSort').select('Price: Highest first');
+})
+Tras una comprobación visual puedo ver que lo selecciona perfectamente.
+
+IMPORTANTE: si busco por un texto incorrecto cypress no encontrará esa <option>,saltará el timeout para esa búsqueda y dará un error:
+it('Order by In stock', function(){
+    cy.get('#selectProductSort').select('In Stock');<- es In stock,dará un error
+  })
+Fijate que el timeout está en 4000ms por defecto
+
+		VIDEO 11 EL PRIMERO DE LA LISTA
+
+TIP: puedo acceder al autocompletado con:
+/// <reference types="cypress"/>
+Bien,que pasa si tengo múltiples elementos de algo y no puedo diferenciarlos.Veamos como puedo seleccionar la primera ocurrencia de algo.Por ejemplo,las tres categorias women,dresses y t-shirts comparten la misma clase
+
+Empecemos viendo como no se puede hacer click sobre un grupo de elementos(a no ser que le pase multiple a true):
+
+it('Debe seleccionar el primero de la lista', function(){
+    cy.get('[class="sf-with-ul"]').as('links'); <- esto me devuelve varios,ojo
+    cy.get('@links').click(); <- no puedo hacer click sobre varios elementos por defecto
+  })
+
+cy.click() can only be called on a single element. Your subject contained 4 elements. Pass { multiple: true } if you want to serially click each element.
+
+La solución es simplemente usar first() sobre el grupo de elementos que devuelva el get:
+    cy.get('@links').first().click()
+En el siguiente video veré como seleccionar cualquier elemento de esa lista,y no sólo el primero.
+NOTA:recuerda que también tengo last() para seleccionar el último.
+
+	    VIDEO 12 SELECCIONANDO CUALQUIER ELEMENTO DE UNA LISTA(POR INDICE)
+
+Normalmente querré seleccionar cualquier elemento de esa lista,y no sólo el primero o último.Para ello usaré el método eq(indice) sobre un locator.Veamos como hacerlo.     
+
+it('Debe de seleccionar un elemento por indice y visitarlo',() => {
+  cy.get('[class="sf-with-ul"]').as('links');
+  cy.get('@links').eq(3).click()
+})
+No puede ser más sencillo.En este caso el link dresses estaba en el indice 3 de lo que devuelve el selector por clase
+TIP:fijate que eq(0) sería el equivalente a first()
+NOTA: recuerda que cada instrucción de cypress es una promesa,pero pareciera que es sincrono,esto es la magia de cypress.Es decir que podria hacer esto:
+cy.get('[class="sf-with-ul"]').then( (sel) => sel.eq(3).click) <- sin embargo no tiene sentido.
+TIP:con cypress run levanto el cypress en modo headless(parece que es el navegador sin UI).Grabará un video de la prueba en el subfolder correspondiente.
+
+		VIDEO 13 ASSERTS - ASERCIONES MÁS USADAS
+
+Como hemos comentado anteriormente cypress usa los asserts de chai.La cantidad que hay es gigantesca.Hay muchos que tienen más sentido para un dev que para un QA.
+Fijate en la sintaxis de chai:
+
+describe('utilizando los asserts de chai',function(){
+
+  it('la igualdad debe ser true',() => {
+    expect(1===1).to.equal(true);
+  })
+
+  /* si uso only solo ejecutaré las que se marquen con only */
+  it.only('la resta debe estar bien',() => {
+    expect(1-1).to.equal(0);
+  })
+
+  it.only('la operacion no debe estar correcta',()=>{
+    expect(1-1).not.to.equal(2)
+  })
+  /* fijate en otra forma de hacer el to.equal(true) pero con propiedades */
+  it.only('tiene que ser verdadero',() => {
+    expect(2===2).to.be.true;
+  })
+ /* comprobar si algo existe(to.exist) */
+  it.only('la variable debe existir', () => {
+    expect(a).to.exist;
+  });
+
+  /* comprobar que algo sea menor que */
+  it('debe ser menor a 10', () => {
+    expect(a).to.be.lessThan(10);
+  });
+
+  it('debe ser mayor que 0', () => {
+    expect(a).to.be.greaterThan(0);
+  });
+
+Estos son algunos de los asserts más comunes
+
+			VIDEO 14 AGREGANDO VALOR A LOS ASSERTS
+
+Siempre que quiera puedo usar un segundo argumento en el método assert para que imprima ese argumento en caso de AssertionError:
+
+it.only('la variable debe existir', () => {
+  expect(a,'a no debe existir y si veo esto es que si existe').not.to.exist;
+});
+
+Utilizar estos mensajes de error me puede ayudar en el momento de que falle una prueba,sobre todo tras mucho tiempo
+TIP:en entornos más profesionales no se usa esto,sino la herramienta Gherkin.
+
+			VIDEO 15 MODO HEADLESS
+
+Cypress viene con un modo Headless,sin entorno gráfico.Esto es necesario en entornos como CI/CD donde no existe el acceso a un navegador para ejecutar las pruebas.También es más rápido ya que no tiene que levantar un navegador con UI.
+Para abrirlo en este modo usaré el comando run en vez de open:
+>./node_modules/.bin/cypress run <- anteriormente era open,acuerdate
+
+Una vez que se ejecuten todas las pruebas por la CLI veré una especie de resumen final en forma de tabla,esta salida es lo que veré en un entorno CI/CD para saber exactamente como fueron.
+
+			VIDEO 16 PAGE OBJECTS
+
+NOTA: cypress recomienda no usar Page Objects.Hay soluciones mejores en cypress(puede que en Selenium no).
+Puedo separar en clases cada una de las páginas que tenga mi sistema:
+
+/// <reference types="cypress" />
+
+class IndexPage {
+  constructor() {
+    this.searchInput = '#search_query_top';
+    this.searchButton = '#searchbox > .btn';
+  }
+
+  search = (element) => {
+    cy.get(this.searchInput).type(element);
+    cy.get(this.searchButton).click();
+  };
+}
+
+const indexPage = new IndexPage();
+export { indexPage };
+
+Y ahora ya puedo sustituir donde llamra a esas dos instrucciones por el método de clase:
+import { indexPage } from "../support/pages";
+
+describe('Pruebas automatizadas en search.js',() => {
+  const url = 'http://automationpractice.com/index.php';
+  it('Search with results',() => {
+    cy.visit(url);
+    indexPage.search('dress')
+    // cy.get('#search_query_top').type('dress');
+    // cy.get('#searchbox > .btn').click();
+    cy.get('.lighter').contains('"dress"')
+  })
+})
+
+Puedo ver que refactorizar así me ayudará con la mantenibilidad y reusabilidad.Puedo hacer otra refactorización del contains.Obviamente esto no parece muy útil de momento:
+
+/// <reference types="cypress" />
+
+class ArticlesPage {
+  constructor() {
+    this.banner = '.lighter';
+  }
+
+  verifyArticle = (article) => {
+    cy.get(this.banner).contains(article);
+  };
+}
+
+const articlesPage = new ArticlesPage();
+export { articlesPage };
+
+TIP: las formas mejores se llaman Custom Commands
+
+			VIDEO 17 INTRODUCCION A LOS CUSTOM COMMANDS
+
+En cypress yo puedo crearme mis propios comandos.Si yo necesito una funcionalidad recurrente(que usaré después) puedo crearme un comando que haga esa funcionalidad recurrente.
+El lugar donde hacerlo ya viene dado por el framework y es en el file cypress/support/commands.js
+
+* Para agregar un command voy a ese archivo y uso Cypress.Commands.add(nameOfNewCommand,logic).
+Por ejemplo,algo tan sencillo como esto:
+
+Cypress.Commands.add('logWithSpecialFormat', (textToLog) => {
+  cy.log('======' + textToLog + '=====');
+});
+
+Luego simplement lo llamo con cy.logWithSpecialFormat(el primer argumento es el nuevo name):
+
+before( () => cy.logWithSpecialFormat('starting tests in asserts'));
+
+Puedo ver que es sencillisimo aumentar funcionalidad(o hacerla recurrente) con los comandos 
+
+			VIDEO 18 FIXTURES
+
+TIP: fixtures es accesorios en inglés(también instalaciónes,supongo que se refiere a instalaciones extra).Asi pues los fixtures de una app son plugins,accesorios,instalaciones extra.Incluso me valdría simplemente traducirlo por extras.
+
+Con las fixtures puedo usar datos a partir de un archivo JSON y meterlos en nuestras interaccionesCypress propone al tester esta opción,para que pueda tener todos sus datos en un archivo y que pueda recuperarlos facilmente cuando quiera.
+Estos archivos ya tienen su ubicación predeterminada en el framework,ojo,y van en cypress/fixtures/xxx.json.
+
+TIP: fijate que casi nunca voy a trabajar sólo.Siempre debo pensar que soy parte de un equipo.Bien,veamos un caso muy sencillo de uso:
+{
+  "searchInputSelector": "#search_query_top",
+  "searchButton": "#searchbox > button"
+}
+
+Ahora podría cambiar la Page Objet anterior:
+
+class IndexPage {
+  search = (element) => {
+    cy.fixture('index.json').then((locators) => {
+      cy.get(locators.searchInputSelector).type(element);
+      cy.get(locators.searchButton).click();
+
+    } )
+  };
+}
+
+const indexPage = new IndexPage();
+export { indexPage };
+
+Fijate que cy.fixture():Promise es una Promise y que ya puedo prescindir del constructor.Desde luego esta carpeta cypress/fixtures y sus archivos JSON es un lugar ideal para mockear data o guardar data necesaria o simplemente para modularizar y/o abreviar.
+
+			VIDEO 19 INICIANDO UN PROYECTO
+
+
