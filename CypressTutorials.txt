@@ -448,4 +448,132 @@ Fijate que cy.fixture():Promise es una Promise y que ya puedo prescindir del con
 
 			VIDEO 19 INICIANDO UN PROYECTO
 
+TIP: leo un contenido con type <file>,creo un directorio con md <carpeta>(de makeDirectory).De donde vienen??
+Bien,para crear un proyecto puedo empezarlo con npm init -y,etc y despues instalar cypress.
+>npm i cypress 
+NOTA: no es hasta la primera vez que ejecute cypress open que se creará la carpeta cypress:
+>.\node_modules\.bin\cypress open
+IMPORTANTE:en Windows hay que escapar las contrabarras con otra contrabarra
+
+			VIDEO 20 INICIANDO PRUEBAS
+
+Se recomienda limpiar todos los tests de ejemplo y configurar en el cypress.json cualquier variable a reusar,como la Url:
+{
+  "baseUrl": "http://automationpractice.com/index.php"
+}
+
+También usaré fixtures.Fijate que es muy buena idea centralizar todos los selectores,etc en un archivo por si cambiaran ya que solo tendré que cambiarlos en un lado.Realmente es importante:
+En el fixtures/index.json:
+{
+  "searchBox": "#search_query_top",
+  "searchBoxText": "dress",
+  "searchButton": "#searchbox > .btn"
+}
+Y fijate que el cypress.json también lo usó:
+    beforeEach(() => {
+        cy.visit('/') // fijate que el cypress.json me va a ayudar aqui
+    })
+
+    it('Search for elements with multiple results', () => {
+        cy.fixture('index.json').as('tiendaDeRopa');
+        cy.get('@tiendaDeRopa').then( (index) => {
+            cy.get(index.searchBox).type(index.searchBoxText);
+            cy.get(index.searchButton).click();
+        });
+        cy.fixture('searchResult.json').then( (searchResult) => {
+            cy.get(searchResult.title).should('contain', 'dress');
+        })
+    })
+  
+Puedo apreciar la buena práctica que es usar fixtures y una baseUrl,y que los asserts van con should(action,value).Profundizar más sobre esto.
+TIP: fijate que una prueba sin assert realmente no está evaluando nada.Debo usar should.Fijate también que debo comprobar casos no exitosos:
+
+  it('should search for elements with no results', () => {
+    cy.fixture('index.json').as('tiendaDeRopa');
+    cy.get('@tiendaDeRopa').then((index) => {
+      cy.get(index.searchBox).type('qwerty');
+      cy.get(index.searchButton).click();
+    });
+    cy.fixture('searchResult.json').then((searchResult) => {
+      cy.get(searchResult.alert).should('contain', 'No results were found for your search');
+    });
+  });
+
+		VIDEO 21 CUSTOM COMMANDS
+
+La idea de cypress es no usar esas clases que representan un Page Object.Lo que hay que hacer es crear un Command.Por ejemplo,el ejemplo anterior está repitiendo el import de los fixtures,lo apropiado es crear un Command.		
+Cypress.Commands.add('requireFile',(fileName) => {
+  cy.fixture(fileName).then((data) => {
+    //logic to manipulate data
+   })
+});
+Fijate que podría crear un método que busque el input,inserte un texto y haga el click,esto si sería buena idea.
+Puedo observar que cypress provee varias formas para abreviar y configurar,siendo una opción muy madura y confiable.Se nota porqué es la solución más usada para end to end.
+
+		VIDEO 22 ARMANDO MÁS TESTS Y USANDO MÁS CUSTOM COMMANDS
+
+Vamos a testear un Login(SignIn) tanto exitoso como incorrecto.Recuerda que cypress va a tratar de conseguir el mejor selector posible si uso el botón Open Selector Playground.
+Bien,con todo lo que sé podría hacer algo como esto perfectamente ya:
+
+describe('pruebas en el login', () => {
+  beforeEach(() => {
+    cy.visit('/');
+  });
+
+  it('login with incorrect email', () => {
+    cy.get('.login').click();
+    cy.get('#email').type('something');
+    cy.get('#passwd').type('12345678');
+    cy.get('#SubmitLogin > span').click();
+    /* recuerda que debe haber un assert */
+    cy.get('ol > li').should('contain', 'Invalid email address');
+  });
+
+Pero puedo incluso mejorarlo con los fixtures.Creo una para el login(fixtures/login.json):
+{
+  "loginLink":".login",
+  "email":"#email",
+  "password":"#passwd",
+  "loginButton":"#SubmitLogin > span",
+  "incorrectLoginBanner":"ol > li"
+}
+
+  it('login with incorrect email', () => {
+    cy.fixture('login.json').as('login');
+
+    cy.get('@login').then((login) => {
+      cy.get(login.loginLink).click();
+      cy.get(login.email).type('something');
+      cy.get(login.password).type('1234567890');
+      cy.get(login.loginButton).click();
+      cy.get(login.incorrectLoginBanner).should('contain', 'Invalid email address');
+    });
+  });
+
+Incluso debería sacarlo a un Custom Command para reusar la funcionalidad del login.Para ello creo en support/login.js otro comando e importo en el barrel file este archivo para que cypress lo carggue al arrancar el proceso.
+Cypress.Commands.add('login', (email,password) => {
+  cy.fixture('login.json).then(login => {
+      cy.get(login.loginLink).click();
+      cy.get(login.email).type(email);
+      cy.get(login.password).type(password);
+      cy.get(login.loginButton).click();
+  });
+});
+
+Fijate como ya dejo parametrizado el login.Y como tengo que sacar el assert,ya que eso SI cambiará entre tests.
+TIP:el archivo support/index.js es cargado y procesado por cypress antes de ejecutar los tests
+
+		VIDEO 23 LEYENDO DE UN ARCHIVO DE TEXTO
+
+Realmente leer un file es bastante sencillo.Cypress ya proporciona el método cy.readFile(absolutePath) para leer un file,el cual es una Promise que se resolverá en la lectura exitosa o un Error.
+Fijate que el path esta vez es absoluto,empezando desde la carpeta cypress:
+
+  it('should search for elements with special code ', () => {
+   cy.readFile('cypress/support/text-files/search.txt').then((text) => {
+     cy.search('index',text);
+   }); 
+   cy.fixture('searchResult.json').then((searchResult) => {
+    cy.get(searchResult.alert).should('contain', 'No results were found for your search');
+  });
+
 

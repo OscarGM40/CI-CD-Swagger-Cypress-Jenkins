@@ -1,0 +1,5 @@
+{
+  "searchBox": "#search_query_top",
+  "searchBoxText": "dress",
+  "searchButton": "#searchbox > .btn"
+}
