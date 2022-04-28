@@ -1,0 +1,162 @@
+		CONFIGURANDO ESLINT Y PRETTIER EN UN PROYECTO BY MIDU
+
+Source: https://www.youtube.com/watch?v=EEDRcolSHms
+
+			    ¿QUE ES ESLINT?
+
+Eslint es un linter para Javascript.Me avisará tanto de errores como del estilo(indentaciones,espacios,saltos de linea,etc.).También está el linter para Typescript tslint.
+Dejo ambos enlaces en la carpeta NttData(https://eslint.org/docs/user-guide/getting-started).
+
+Para configurar la herramienta deberé crear un eslintrc.json o tslintrc.json(también pueden ser extensión yaml o js)
+Para poder trabajar con la tool tengo que instalar eslint(o tslint) como dependencia de desarrollo(un linter no tiene sentido que forme parte del bundle):
+>npm i eslint -D  | yarn add eslint -D
+
+				CREANDO EL ESLINTRC FILE
+
+Para crear el archivo puedo simplemente crearlo y copiar una config en él,pero también puedo utilizar eslint en si mismo para inicializarlo,lo cual es muy comodo(npx eslint --init):
+TIP: fijate que necesito visión sobre el binario para usar npx eslint --init para configurar las reglas de ese proyecto(también podría acceder con ./node_modules/.bin/eslint --init)
+>npx eslint --init
+
+Me preguntará el tipo de proyecto,entorno,framework,reglas,etc.Fijate que ya hay algunas creadas como la estandar que recomienda Midu o la de AirBnb.
+Recuerda aceptar que instale todas las peer-dependencias que necesita eslint(y recuerda que las instala con npm,si voy con yarn tengo que decir que no y hacerlo a mano).
+
+IMPORTANTE: desde este punto tendría que tener la extensión eslint en el IDE.Y lo mismo para prettier.Si no no tendrá la integración necesaria para ver el subrayado en rojo para errores,etc...
+Puedo observar que en React JS dará error si no uso PropTypes,o que react debe estar en el scope.
+
+				VER ERRORES Y CORREGIRLOS
+
+Para ver todos los problemas en el proyecto puedo usar npx eslint .(siempre que tenga visión sobre el binario).
+También puedo usar npx eslint . --fix(ojo que es . --fix) para que los intente solucionar él.
+
+Sin embargo,dado que esto es muy engorroso y puedo incluso ahorrarme el npx porque desde el package.json tengo visión sobre cualquier binario ni siquiera necesito npx(da igual si lo pusiera,pero es redundante e innecesario), crearé los scripts para esos comandos:
+
+"scripts":{
+  "lint:fix": "eslint . --fix"
+  "lint:show": "eslint ."
+Fijate que da igual que ponga npx o no en el package.json.
+
+IMPORTANTE: puedo mandar que al formatear trate de hacer el fix desde el settings.json.Sin embargo,no funcionará para mi,ya que hay que desactivar el autosave.Sin embargo,si que funcionará la primera linea donde digo que formatee con el prettier(fijate que necesito ambas extensiones):
+
+ "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true
+  },
+TIP: prettier va a ejecutar el npx eslint . --fix por detrás,por eso es la opción que selecciono.
+TIP: la config del eslintrc también puede ir incluida embebida en el package.json
+NOTA: NextJS hace el import react from react de gratis en cada archivo,lo cual me lleva al siguiente punto.
+
+				SOBREESCRIBIR REGLAS
+
+Puedo sobreescribir cualquier regla que quiera,por ejemplo,al estar en una app de Next el propio framework ya importa react en cada file en el background.
+Para sobresscribir una regla engo que hacerlo en la propiedad rules:
+
+rules: {
+  'react/react-in-jsx-scope': 'off' <- estaba en error,me molestará en un proyecto Next,ya lo hace él
+  }
+
+NOTA:los estados posibles para una rule son off | warn | error .Con warn mostrará un warning con subrayado en amarillo(si tengo la extension) y con error será en rojo.
+
+			¿QUE ES PRETTIER?
+
+Prettier es diferente,no entiende de errores,sólo va a mirar los estilos del código.Puedo tener cualquier error que prettier no lo va a detectar.Sólo mirará por reglas de formateo de código.
+Por ejemplo, linter va a mirar si una variable no se usó o por el soft wrap de cada linea,etc.Prettier se ocupa únicamente de estilizar el código con un etilo opinionado.
+
+Hoy en día el Eslint es suficiente,pero Prettier se ha usado mucho para estandarizar el estilo del código en base a su opinión.
+
+NOTA:Prettier es un formateador de código opinionado,es decir,formaterá de una forma.LA idea de usar Prettier era no tener archivos de configuración de formateo(como el eslintrc)Eslint es al revés,yo tengo que configurar todo,pero me permite opinar a mí y configurar o reconfigurar todo.
+
+Prettier es un subset del eslint con reglas ya cerradas.Es más rápido también,pero realmente es imperceptible esto a efectos de performance.
+
+Reglas por default que trae Prettier al instalar la extensión: 80 caracteres por linea,usa punto y coma,usa comillas dobles
+
+TIP: si quiero que no acabe en el bundle de mi app elementos que no use(tree shaking) debería usar el import optimizado(import * as ... from '') <- y porque??
+
+NOTA: tree shaking(agitado del árbol) es un concepto que se refiere al removido/eliminación de código muerto/innecesario. Herramientas como webpack o rollup lo hacen automáticamente al hacer el bundlelizado de la app.Esto es importante para minimizar el peso del código y dejar una estructura limpia de archivos.
+
+TIP:hay tres tipos de dependencias.
+dependencies: dependencias que acabarán en el bundle y son necesarias para la ejecución de la app
+devDependencies: dependencias necesarias SOLO durante el desarrollo de la app.NO van al bundle
+peerDependencies: dependencias que doy por echo que estarán en el proyecto(por ejemplo,si creo un proyecto que usa react puedo poner como peerDependency a React,sin especificar versión)
+
+
+			INSTALAR PRETTIER JUNTO A ESLINT
+
+Ya he visto que eslint y prettier se pueden pisar entre ellos y llevar a errores(suele ser eslint el que pisa a prettier??).Para que esto no suceda hay que instalar esta devDep:
+>npm i eslint-config-prettier -D
+
+IMPORTANTE: hay que pasar prettier como último plugin en la propiedad extends:
+
+extends: ["plugin:react/recommended", "standard", "prettier"],
+NOTA: fijate que en cuanto ponga a prettier el último,él va a ser el que en última instancia dictamine el camino a seguir con cualquier regla que tengan ambos.En este caso ya me está pasando a double quotes todo.Para configurar prettier tendré que crear su archivo correspondiente de config.
+
+De esta forma se van a desactivar todas las reglas del linter que se fueran a pelear con las de prettier(puedo ver que ahora acepta dobles comillas,y ha desactivado casi todo).Asi que habrá que instalarlo y configurarlo:
+
+>npm i prettier -D
+Obviamente tendré que crearle un archivo de configuración.De nuevo puedo embeberlo en el package.json o crearle un .js | yaml | json (la base es prettierrc)
+
+NOTA: si es un prettierrc.js | prettierrc.config.js debo exportar un {} con module.exports.
+IMPORTANTE: en este momento también necesitaría la extensión de prettier del IDE
+NOTA:de igual forma que puedo ver los errores de eslint puedo ver los de prettier con:
+>npx prettier . --check <- simplemente cambia la flag
+
+NOTA: puedo crear un .prettierignore para ignorar folders como .next o node_modules(aunque esta ya la ignora por defecto).Fijate que es .prettierignore y no .prettierrcignore(sin el rc).
+Y para solucionar los errores puedo pasarle la flag --write,que es como el --fix del linter:
+>npx prettier . --write
+
+IMPORTANTE: debo instalar la extensión oficial,ojo que hay bastantes,no instalar ninguna no oficial o que ya este enlazada a standard o airBnb,etc...
+
+Una vez con todo correcto,puedo empezar a configurar prettier,por ejemplo,que no añada punto y coma al guardar(cosa que hace por defecto):
+En el .prettierrc.json
+{
+  "semi": false <- semi de semicolon
+}
+IMPORTANTE: hacer que el linter y el prettier se lleven bien es tan sencillo como instalar la libreria eslint-config-prettier.Fijate que parece algo indispensable(recuerda que serán tres librerias pues).
+
+		CONFIGURAR REGLAS DE PRECOMMIT CON ESLINT-PRETTIER Y HUSKY
+
+Midu recomienda la libreria lint-staged que pasa unas reglas para los archivos ya staged.Es decir que cuando vaya a hacer el commit seguirá las reglas que configure.Para instalarlo se usa:
+>npx mrm lint-staged <- mrm es un paquete opensource de github preparado para modificar rapidamente los package.json,.eslintrc,.gitignore...)
+Este comando lo que hará es instalar la lib y además configurar estos archivos con el preset ya definido por la libreria.
+Fijate que me instaló husky aparte de lint-staged.Perfecto.Averigüar más formas de usar husky.
+
+			CONFIGURAR JSCONFIG EN UN PROYECTO
+
+Hay un archivo jsconfig.json que puedo poner en mi proyecto para mejorar el cómo trato ese proyecto.Fijate que también existe el tsconfig.json pero estamos hablando del jsconfig para el javascript.
+Por ejemplo puedo decirle como tiene que hacer los imports,darle un alias,etc.Este file es compatible con NextJs y create-react-app.
+
+TIP:cuando tengo un anidamiento muy fuerte debo usar este tipo de archivos.De esta forma le puedo decir desde donde tiene que detectar los imports:	
+
+En el jsconfig.json:
+{
+  "compilerOptions": {
+    "baseUrl": "."
+    }
+}
+Ahora ya no tendré que hacer los imports asi '../componentes' sino con la ruta absoluta desde la raiz.Tengo que probar esto
+import '../styles' seria 'styles' por ejemplo <- probar
+No sólo esto,sino que también tengo los paths.Los paths son alias que puedo usar para referirme a ciertas carpetas o archivos. 
+
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@c/*":["components/*"]
+    }
+  }
+}
+Obviamente la carpeta componentes es la más usada como alias.Si ahora quiero traer algo de alli:
+import Layout from 'components/Layout' pasaría a '@c/Layout'.
+NOTA: se pierde un poco legibilidad,asi que midu recomienda sólo usarlo para algun file en concreto que sea muy especial y esté en un sitio muy raro
+NOTA: transversal es que es atravesado en perpendicular en base a su dimension longitudinal,en resumen, el eje Y o vertical.
